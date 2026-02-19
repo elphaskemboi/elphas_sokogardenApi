@@ -60,7 +60,6 @@ def login():
         # get the userdata
         user= cursor.fetchone()
         return jsonify({"Message":"login succesfull", "user":user})
-    
 
 if __name__=="__main__":
     app.run(debug=True)
