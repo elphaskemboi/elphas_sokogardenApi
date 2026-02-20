@@ -1,8 +1,10 @@
 from flask import*
 import pymysql
 import pymysql.cursors
+import os
 
 app=Flask(__name__)
+app.config["UPLOAD_FOLDER"]="static/images"
 
 @app.route("/api/signup", methods=["POST"])
 def signUp():
@@ -61,7 +63,36 @@ def login():
         user= cursor.fetchone()
         return jsonify({"Message":"login succesfull", "user":user})
 
+@app.route("/api/add_product", methods=["POST"])
+def addProduct():
+    product_name=request.form['product_name']
+    product_description=request.form['product_description']
+    product_category=request.form['product_category']
+    product_cost=request.form['product_cost']
+    product_image=request.files['product_image']
+    
 
-
+    
+    print(product_name,product_description,product_category,product_cost,product_image)
+        # get image name
+    image_name =product_image.filename
+    
+    # save the image to folder
+    file_path=os.path.join(app.config["UPLOAD_FOLDER"],image_name)
+    product_image.save(file_path)
+    # creating connection to data base
+    connection=pymysql.connect(host="localhost",user="root",password="",database="elphas_sokogarden")
+    # to handle sql query             
+    cursor=connection.cursor()
+    # sql query to enter data
+    sql="insert into product_details(product_name,product_description,product_category,product_cost,product_image) values(%s,%s,%s,%s,%s)"
+    # data to be saved
+    data=(product_name,product_description,product_category,product_cost,product_image)
+    # save to database
+    cursor.execute(sql,data)
+    
+    connection.commit()
+    
+    return jsonify({'message':'Done'})
 if __name__=="__main__":
     app.run(debug=True)
